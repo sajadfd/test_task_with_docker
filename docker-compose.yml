@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:1.23.3-alpine-slim
+    container_name: LMS_with_docker_sajjad
+    ports:
+      - "8083:80"
+    volumes:
+      - ./public_html:/var/www/html:z
+      - ./nginx/conf.d:/etc/nginx/conf.d/:z
+    depends_on:
+      - php74lms
+    networks:
+      - default   
+      
+  php74lms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./public_html:/var/www/html:z
+      - ./php/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf:z
+      - ./php/php.ini:/usr/local/etc/php/php.ini:z 
+    # Set environment variables for PHP
+    environment:
+      PHP_FPM_HOST: php74lms
+      PHP_FPM_PORT: "9000"
+    networks:
+      - default
+  # uncommit this lines if you need mysql
+  # mysql:
+  #   image: mysql:5.7
+  #   container_name: mysql
+  #   restart: always
+  #   environment:
+  #     - "MYSQL_DATABASE=laravel"
+  #     - "MYSQL_PASSWORD=secret"
+  #     - "MYSQL_ROOT_PASSWORD=secret"
+  #   volumes:
+  #     - ./dbdata:/var/lib/mysql
+  # uncommit this lines if you need phpmyadmin
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin
+  #   restart: unless-stopped
+  #   environment:
+  #     PMA_HOST: mysql
+  #   ports:
+  #     - "8087:80"
+  #   depends_on:
+  #     - mysql
+  #   container_name: phpmyadmin
+ 
+networks:
+  default:
+   # in server just uncomment the following line
+    external:
+      name: nginx_proxy
